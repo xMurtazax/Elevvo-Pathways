@@ -1,5 +1,4 @@
--- 1) Top-Selling Tracks Per Genre
-
+-- Top-Selling Tracks Per Genre
 SELECT
 	G.GenreId,
     G.Name,
@@ -19,42 +18,48 @@ on
 order by
 	Revenue desc;
 
--- 2) Revenue Per Region
+-- 1) Top-Selling Products (Quantity of Tracks Selled)
 
+select T.name Track, sum(Quantity) as Quantity
+from invoiceline IL join track T on IL.trackId = T.trackId
+group by T.name
+order by Quantity desc;
+
+-- 2) Revenue Per Region
 SELECT
-	BillingCountry,
-    sum(total) as Revenue_Per_Region
-FROM chinook.invoice
-group by BillingCountry
-order by Revenue_Per_Region desc;
+	BillingCountry Country,
+    sum(total) as Revenue
+FROM
+	chinook.invoice
+group by
+	BillingCountry
+order by
+	Revenue desc;
 
 -- 3) Monthly Performance
-
 select
-    month(InvoiceDate) as Month,
+    monthname(InvoiceDate) as Month,
     sum(total) as Revenue
-from chinook.invoice
-group by month(InvoiceDate);
-
-
--- BONUS (Top 3 highest revenue generating customers(can be more than 3 having same revenue) per country)
-
-select *
 from
-	(
-		select
-			C.CustomerId, LastName, Phone, Email, country, total,
-			rank() over(partition by Country order by total desc) as Priority
-		from
-			(
-				select
-					CustomerId,
-					sum(total) as total
-				from chinook.invoice
-				group by CustomerId
-			) aggregated_total
-		join chinook.customer C
-			on C.CustomerId = aggregated_total.CustomerId
+	chinook.invoice
+group by
+	monthname(InvoiceDate);
+
+
+-- BONUS (Top 3 highest revenue generating customers per country)
+select *
+from (
+	select
+		FirstName, LastName, Country, State, City, Address, Company, Phone, Email, total,
+		row_number() over(partition by Country order by total desc) as Priority
+		from (
+			select
+				CustomerId,
+				sum(total) as total
+			from chinook.invoice
+			group by CustomerId
+		) aggregated_total
+		join chinook.customer C on C.CustomerId = aggregated_total.CustomerId
 	) ranked_customers_per_country
 where
 	ranked_customers_per_country.Priority <= 3;

@@ -19,7 +19,6 @@ order by
 	Revenue desc;
 
 -- 1) Top-Selling Products (Quantity of Tracks Selled)
-
 select T.name Track, sum(Quantity) as Quantity
 from invoiceline IL join track T on IL.trackId = T.trackId
 group by T.name
